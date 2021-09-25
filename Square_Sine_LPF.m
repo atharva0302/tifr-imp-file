@@ -1,0 +1,16 @@
+Fs=10000;
+T=1/Fs;
+t = 0:T:1-T;
+y = square(2*pi*1000*t,50);
+subplot(411);
+plot(t,y);
+x = sin(2*pi*1000*t);
+subplot(412);
+plot(t,x);
+z = x.*y;
+subplot(413);
+plot(t,z);
+d = designfilt('lowpassfir','FilterOrder',0,'CutoffFrequency',10,'SampleRate',Fs);
+a = filter(d,z);
+subplot(414);
+plot(t,a);
