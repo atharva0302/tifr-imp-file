@@ -1,0 +1,92 @@
+%TASK - OPERATIONS ON SINE & SQUARE 
+Fs=10000; %sampling freq
+T=1/Fs;
+t = 0:T:1-T;
+c = cos(2*pi*1000*t);
+y = square(2*pi*1000*t,50);
+x = sin(2*pi*1000*t);
+z = x.*y; %SINE AND SQUARE ELEMENT WISE MULTIPLIED 
+o = c.*y; %COSINE AND SQUARE ELEMENT WISE MULTIPLIED 
+fig1=figure;
+fig2=figure;
+fig3=figure;
+fig4=figure;
+
+%Design of filter
+Fp = 0;
+Fst = 1000;
+Rp = 0.057501127785;
+Rs = 0.0001;
+flag ='scale';
+%order
+fedge =[Fp Fst];
+aval = [1 0];
+dev = [Rp Rs];
+[N,Wn,beta,ftype]=kaiserord(fedge,aval,dev,Fs);
+%coefficients
+b = fir1(N,Wn,ftype,kaiser(N+1,beta),flag);
+Hd = dfilt.dffir(b);
+fil1=filter(Hd,z);%filtered sine*square
+fil2=filter(Hd,o);%filtered cosine*square
+
+%FFT of sine*squ and cosine*sq
+Fil=[fil1;fil2];
+L=1000;
+n=2^nextpow2(L);
+dim =2;
+Y=fft(Fil,n,dim);  %FFT of Output
+P2 = abs(Y/L);
+P1 = P2(:,1:n/2+1);
+P1(:,2:end-1) = 2*P1(:,2:end-1);
+figure(fig1)
+subplot(2,1,1)
+plot(0:(Fs/n):(Fs/2-Fs/n),P1(1,1:n/2))
+title('sine*square in the Frequency Domain AFTER LPF')
+subplot(2,1,2)
+plot(0:(Fs/n):(Fs/2-Fs/n),P1(2,1:n/2))
+title('cosine*square in the Frequency Domain AFTER LPF')
+
+
+%FFT OF FINAL O/P
+l=2*sqrt((fil1.*fil1)+(fil2.*fil2));
+Y=fft(l);
+f = Fs*(0:(L/2))/L;
+P2 = abs(Y/L);
+P1 = P2(:,1:n/2+1);
+P1(:,2:end-1) = 2*P1(:,2:end-1);
+figure(fig2)
+subplot(211)
+plot(0:(Fs/n):(Fs/2-Fs/n),P1(1,1:n/2)) 
+title('Freq Spectrum of FINAL output')
+subplot(212);
+plot(t(1:100),l(1:100));
+title('Final wave');
+
+%All time domain plots
+figure(fig3);
+subplot(511);
+plot(t(1:100),y(1:100));
+title('Square Wave')
+subplot(512);
+plot(t(1:100),x(1:100));
+title('Sine')
+subplot(513);
+plot(t(1:100),c(1:100));
+title('Cosine')
+subplot(514);
+plot(t(1:100),z(1:100));
+title('Multiplied O/P sine*square')
+subplot(515);
+plot(t(1:100),o(1:100));
+title('Multiplied O/P cosine*square')
+
+%Filtered of multiplication before square law(time)
+figure(fig4)
+subplot(211);
+plot(t(1:10000),fil1(1:10000));
+axis([0 0.9 0 1]);
+title('filtered O/P sine*square');
+subplot(212);
+plot(t(1:100),fil2(1:100));
+title('filtered O/P cosine*square');
+
